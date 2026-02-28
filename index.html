@@ -18,12 +18,10 @@ body{
     overflow:hidden;
 }
 
-.container{
-    text-align:center;
-}
+.container{ text-align:center; }
 
 .chest{
-    width:210px;
+    width:220px;
     height:160px;
     position:relative;
     margin:auto;
@@ -76,20 +74,38 @@ body{
 
 .energy{
     position:absolute;
-    inset:-20px;
-    border-radius:30px;
-    background: radial-gradient(circle, rgba(255,255,255,0.7), transparent 70%);
+    inset:-30px;
+    border-radius:40px;
+    background: radial-gradient(circle, white, transparent 70%);
     opacity:0;
 }
 
 .chest.charging .energy{
     opacity:1;
-    animation:pulse 0.6s infinite alternate;
+    animation:pulse 0.5s infinite alternate;
 }
 
 @keyframes pulse{
     from{ transform:scale(1); }
-    to{ transform:scale(1.15); }
+    to{ transform:scale(1.2); }
+}
+
+.explosion{
+    position:fixed;
+    inset:0;
+    background:white;
+    opacity:0;
+    pointer-events:none;
+}
+
+.explosion.show{
+    animation:flash 0.6s forwards;
+}
+
+@keyframes flash{
+    0%{opacity:0;}
+    30%{opacity:1;}
+    100%{opacity:0;}
 }
 
 .stars{
@@ -97,93 +113,86 @@ body{
     font-size:28px;
     letter-spacing:8px;
     opacity:0;
+}
+
+.card{
+    width:160px;
+    height:200px;
+    background:#7b2cbf;
+    border-radius:14px;
+    margin:20px auto;
+    display:none;
+    transform:rotateY(90deg);
     transition:0.6s;
+    box-shadow:0 0 30px #fff;
+    padding:10px;
 }
 
-.reward{
+.card.show{
+    display:block;
+    transform:rotateY(0);
+}
+
+.card img{
+    width:100%;
+    border-radius:10px;
+}
+
+.message{
     margin-top:10px;
-    opacity:0;
-    transform:translateY(20px);
-    transition:0.6s;
-}
-
-.reward img{
-    width:150px;
-    border-radius:12px;
-    margin-top:10px;
-    box-shadow:0 0 25px white;
-}
-
-.show{
-    opacity:1 !important;
-    transform:translateY(0) !important;
-}
-
-.click-info{
-    margin-top:15px;
     font-size:18px;
-    color:#e0aaff;
 }
 </style>
 </head>
 
 <body>
 
+<div class="explosion" id="explosion"></div>
+
 <div class="container">
 
-    <div class="chest" id="chest">
-        <div class="energy"></div>
-        <div class="base"></div>
-        <div class="band"></div>
-        <div class="lock"></div>
-        <div class="lid"></div>
-    </div>
+<div class="chest" id="chest">
+    <div class="energy"></div>
+    <div class="base"></div>
+    <div class="band"></div>
+    <div class="lock"></div>
+    <div class="lid"></div>
+</div>
 
-    <div class="click-info" id="info">Toque 3 vezes para abrir</div>
+<div id="info">Toque 3 vezes para abrir</div>
 
-    <div class="stars" id="stars">
-        ⭐ ⭐ ⭐ ⭐ ⭐
-    </div>
+<div class="stars" id="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
 
-    <div class="reward" id="reward">
-        <div id="??????"></div>
-        <img id="image" src="">
-    </div>
+<div class="card" id="card">
+    <img id="cardImg" src="">
+    <div class="message" id="cardText"></div>
+</div>
 
 </div>
 
-<audio id="sound" src="open.mp3"></audio>
+<audio id="openSound" src="open.mp3"></audio>
+<audio id="cardSound" src="reward.mp3"></audio>
 
 <script>
-let clicks = 0;
+let clicks=0;
+let step=0;
 
-const rewards = [
-    {
-        text:"Uma surpresa especial para você 💜",
-        img:"foto1.jpg"
-    },
-    {
-        text:"Mensagem secreta desbloqueada ✨",
-        img:"foto2.jpg"
-    },
-    {
-        text:"Você é incrível! 💫",
-        img:"foto3.jpg"
-    }
+const rewards=[
+    {text:"Igor, está preparado? 💜", img:"foto1.jpg"},
+    {text:"Você é muito especial ✨", img:"foto2.jpg"},
+    {text:"Mensagem secreta desbloqueada 💫", img:"foto3.jpg"}
 ];
 
-const chest = document.getElementById("chest");
+const chest=document.getElementById("chest");
 
-chest.onclick = () => {
+chest.onclick=()=>{
     if(chest.classList.contains("open")) return;
 
     clicks++;
     chest.classList.add("charging");
+    document.getElementById("info").innerText="Energia "+clicks+"/3";
 
-    document.getElementById("info").innerText =
-        "Energia " + clicks + "/3";
-
-    if(clicks >= 3){
+    if(clicks>=3){
         openChest();
     }
 };
@@ -192,18 +201,35 @@ function openChest(){
     chest.classList.remove("charging");
     chest.classList.add("open");
 
-    document.getElementById("sound").play();
+    document.getElementById("openSound").play();
+
+    document.getElementById("explosion").classList.add("show");
 
     setTimeout(()=>{
-        document.getElementById("stars").classList.add("show");
-    },400);
+        document.getElementById("stars").style.opacity=1;
+        showNextReward();
+    },600);
+}
+
+function showNextReward(){
+    if(step>=rewards.length) return;
+
+    const reward=rewards[step];
+
+    document.getElementById("cardImg").src=reward.img;
+    document.getElementById("cardText").innerText=reward.text;
+
+    const card=document.getElementById("card");
+    card.classList.remove("show");
 
     setTimeout(()=>{
-        const reward = rewards[Math.floor(Math.random()*rewards.length)];
-        document.getElementById("text").innerText = reward.text;
-        document.getElementById("image").src = reward.img;
-        document.getElementById("reward").classList.add("show");
-    },900);
+        card.classList.add("show");
+        document.getElementById("cardSound").play();
+    },100);
+
+    step++;
+
+    setTimeout(showNextReward,2500);
 }
 </script>
 
