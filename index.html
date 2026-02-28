@@ -1,237 +1,151 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Baú Épico</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clash Chest Opening</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(circle, #facc15 0%, #ca8a04 100%);
+            overflow: hidden;
+            touch-action: manipulation;
+            font-family: 'Arial Black', sans-serif;
+        }
 
-<style>
-body{
-    margin:0;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    background: radial-gradient(circle at center, #5a189a, #10002b);
-    font-family: Arial, sans-serif;
-    color:white;
-    overflow:hidden;
-}
+        /* Animação de Luz de Fundo (Glow) */
+        .glow-bg {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: rotate 10s linear infinite;
+            z-index: 0;
+        }
 
-.container{ text-align:center; }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-.chest{
-    width:220px;
-    height:160px;
-    position:relative;
-    margin:auto;
-    cursor:pointer;
-}
+        /* Tremor do Baú */
+        .shake {
+            animation: shake 0.2s ease-in-out infinite;
+        }
 
-.base{
-    width:100%;
-    height:100%;
-    background:linear-gradient(#a855f7,#7b2cbf);
-    border-radius:18px;
-    box-shadow:0 0 60px #c77dff;
-    position:absolute;
-}
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(5px, 5px) rotate(2deg); }
+            50% { transform: translate(-5px, 0px) rotate(-2deg); }
+            75% { transform: translate(5px, -5px) rotate(2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
 
-.band{
-    position:absolute;
-    width:100%;
-    height:20px;
-    top:60px;
-    background:#ffd60a;
-}
+        /* Estilo das Cartas */
+        .card-appear {
+            animation: cardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            perspective: 1000px;
+        }
 
-.lock{
-    width:50px;
-    height:50px;
-    background:#5a189a;
-    border-radius:10px;
-    position:absolute;
-    left:50%;
-    top:45px;
-    transform:translateX(-50%);
-    box-shadow:0 0 20px #ff4dff;
-}
+        @keyframes cardPop {
+            0% { transform: scale(0) rotateY(90deg); opacity: 0; }
+            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        }
 
-.lid{
-    width:100%;
-    height:70px;
-    background:linear-gradient(#c77dff,#9d4edd);
-    border-radius:18px 18px 0 0;
-    position:absolute;
-    top:0;
-    transform-origin:bottom;
-    transition:0.8s;
-}
-
-.chest.open .lid{
-    transform:rotateX(-140deg);
-}
-
-.energy{
-    position:absolute;
-    inset:-30px;
-    border-radius:40px;
-    background: radial-gradient(circle, white, transparent 70%);
-    opacity:0;
-}
-
-.chest.charging .energy{
-    opacity:1;
-    animation:pulse 0.5s infinite alternate;
-}
-
-@keyframes pulse{
-    from{ transform:scale(1); }
-    to{ transform:scale(1.2); }
-}
-
-.explosion{
-    position:fixed;
-    inset:0;
-    background:white;
-    opacity:0;
-    pointer-events:none;
-}
-
-.explosion.show{
-    animation:flash 0.6s forwards;
-}
-
-@keyframes flash{
-    0%{opacity:0;}
-    30%{opacity:1;}
-    100%{opacity:0;}
-}
-
-.stars{
-    margin-top:20px;
-    font-size:28px;
-    letter-spacing:8px;
-    opacity:0;
-}
-
-.card{
-    width:160px;
-    height:200px;
-    background:#7b2cbf;
-    border-radius:14px;
-    margin:20px auto;
-    display:none;
-    transform:rotateY(90deg);
-    transition:0.6s;
-    box-shadow:0 0 30px #fff;
-    padding:10px;
-}
-
-.card.show{
-    display:block;
-    transform:rotateY(0);
-}
-
-.card img{
-    width:100%;
-    border-radius:10px;
-}
-
-.message{
-    margin-top:10px;
-    font-size:18px;
-}
-</style>
+        .legendary-border {
+            border: 4px solid;
+            border-image: linear-gradient(to bottom right, #ff00ea, #00d4ff, #00ff40, #ffff00) 1;
+            box-shadow: 0 0 20px rgba(255,255,255,0.8);
+        }
+    </style>
 </head>
+<body class="h-screen flex items-center justify-center">
 
-<body>
+    <div class="glow-bg"></div>
 
-<div class="explosion" id="explosion"></div>
+    <div id="game-container" class="relative z-10 text-center w-full max-w-sm p-4">
+        
+        <div id="stars" class="flex justify-center mb-4 gap-1">
+            <span class="text-3xl text-white opacity-20">★</span>
+            <span class="text-3xl text-white opacity-20">★</span>
+            <span class="text-3xl text-white opacity-20">★</span>
+        </div>
 
-<div class="container">
+        <div id="chest" class="relative mx-auto w-48 h-48 bg-purple-600 border-4 border-yellow-200 rounded-lg shadow-2xl flex items-center justify-center cursor-pointer transition-all duration-300">
+            <span class="text-6xl text-white">?</span>
+            <div class="absolute inset-0 bg-white opacity-0 transition-opacity duration-100" id="flash"></div>
+        </div>
 
-<div class="chest" id="chest">
-    <div class="energy"></div>
-    <div class="base"></div>
-    <div class="band"></div>
-    <div class="lock"></div>
-    <div class="lid"></div>
-</div>
+        <p id="instruction" class="mt-8 text-white font-bold text-xl drop-shadow-md uppercase italic">Toque para abrir!</p>
 
-<div id="info">Toque 3 vezes para abrir</div>
+        <div id="card-display" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-6">
+            <div id="card-inner" class="bg-white p-4 rounded-xl w-64 h-80 card-appear flex flex-col items-center justify-between border-8 border-purple-500">
+                <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-4xl" id="card-img">🛡️</div>
+                <h2 id="card-title" class="text-2xl font-black text-gray-800 uppercase italic">PEKKA</h2>
+                <p id="card-desc" class="text-sm text-gray-500">Dano massivo!</p>
+            </div>
+        </div>
+    </div>
 
-<div class="stars" id="stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
+    <script>
+        let clickCount = 0;
+        const chest = document.getElementById('chest');
+        const flash = document.getElementById('flash');
+        const stars = document.querySelectorAll('#stars span');
+        const cardDisplay = document.getElementById('card-display');
+        const cardInner = document.getElementById('card-inner');
 
-<div class="card" id="card">
-    <img id="cardImg" src="">
-    <div class="message" id="cardText"></div>
-</div>
+        const cards = [
+            { name: "Exército de Esqueletos", icon: "💀", color: "border-purple-500", desc: "Muitos ossos!" },
+            { name: "Príncipe", icon: "🏇", color: "border-purple-500", desc: "Carga total!" },
+            { name: "MAGO ELÉTRICO", icon: "⚡", color: "legendary-border", desc: "ELETRIFICANTE!" }
+        ];
 
-</div>
+        chest.addEventListener('click', () => {
+            if (clickCount < 3) {
+                // Efeito visual de clique
+                clickCount++;
+                chest.classList.add('shake');
+                flash.style.opacity = "0.8";
+                setTimeout(() => {
+                    chest.classList.remove('shake');
+                    flash.style.opacity = "0";
+                }, 200);
 
-<audio id="openSound" src="open.mp3"></audio>
-<audio id="cardSound" src="reward.mp3"></audio>
+                // Acender estrelas
+                stars[clickCount - 1].classList.remove('opacity-20');
+                stars[clickCount - 1].classList.add('text-yellow-400', 'scale-125');
 
-<script>
-let clicks=0;
-let step=0;
+                // Som (Simulado por vibração no iPhone)
+                if (navigator.vibrate) navigator.vibrate(50);
 
-const rewards=[
-    {text:"Igor, está preparado? 💜", img:"foto1.jpg"},
-    {text:"Você é muito especial ✨", img:"foto2.jpg"},
-    {text:"Mensagem secreta desbloqueada 💫", img:"foto3.jpg"}
-];
+                if (clickCount === 3) {
+                    showCard();
+                }
+            }
+        });
 
-const chest=document.getElementById("chest");
+        function showCard() {
+            setTimeout(() => {
+                const data = cards[clickCount - 1]; // Pega a última carta
+                document.getElementById('card-img').innerText = data.icon;
+                document.getElementById('card-title').innerText = data.name;
+                document.getElementById('card-desc').innerText = data.desc;
+                
+                if (data.color === "legendary-border") {
+                    cardInner.className = "bg-white p-4 rounded-xl w-64 h-80 card-appear flex flex-col items-center justify-between " + data.color;
+                } else {
+                    cardInner.style.borderColor = "#a855f7"; // Roxo épico
+                }
 
-chest.onclick=()=>{
-    if(chest.classList.contains("open")) return;
-
-    clicks++;
-    chest.classList.add("charging");
-    document.getElementById("info").innerText="Energia "+clicks+"/3";
-
-    if(clicks>=3){
-        openChest();
-    }
-};
-
-function openChest(){
-    chest.classList.remove("charging");
-    chest.classList.add("open");
-
-    document.getElementById("openSound").play();
-
-    document.getElementById("explosion").classList.add("show");
-
-    setTimeout(()=>{
-        document.getElementById("stars").style.opacity=1;
-        showNextReward();
-    },600);
-}
-
-function showNextReward(){
-    if(step>=rewards.length) return;
-
-    const reward=rewards[step];
-
-    document.getElementById("cardImg").src=reward.img;
-    document.getElementById("cardText").innerText=reward.text;
-
-    const card=document.getElementById("card");
-    card.classList.remove("show");
-
-    setTimeout(()=>{
-        card.classList.add("show");
-        document.getElementById("cardSound").play();
-    },100);
-
-    step++;
-
-    setTimeout(showNextReward,2500);
-}
-</script>
-
+                cardDisplay.classList.remove('hidden');
+                
+                // Reiniciar após clique na carta
+                cardDisplay.onclick = () => {
+                    location.reload();
+                };
+            }, 500);
+        }
+    </script>
 </body>
 </html>
