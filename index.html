@@ -20,29 +20,54 @@ body{
 
 .container{
     text-align:center;
-    width:100%;
 }
 
 .chest{
-    width:200px;
-    height:150px;
-    margin:auto;
-    background:#c77dff;
-    border-radius:18px;
+    width:210px;
+    height:160px;
     position:relative;
+    margin:auto;
     cursor:pointer;
-    box-shadow:0 0 50px #e0aaff;
+}
+
+.base{
+    width:100%;
+    height:100%;
+    background:linear-gradient(#a855f7,#7b2cbf);
+    border-radius:18px;
+    box-shadow:0 0 60px #c77dff;
+    position:absolute;
+}
+
+.band{
+    position:absolute;
+    width:100%;
+    height:20px;
+    top:60px;
+    background:#ffd60a;
+}
+
+.lock{
+    width:50px;
+    height:50px;
+    background:#5a189a;
+    border-radius:10px;
+    position:absolute;
+    left:50%;
+    top:45px;
+    transform:translateX(-50%);
+    box-shadow:0 0 20px #ff4dff;
 }
 
 .lid{
     width:100%;
     height:70px;
-    background:#e0aaff;
+    background:linear-gradient(#c77dff,#9d4edd);
     border-radius:18px 18px 0 0;
     position:absolute;
     top:0;
     transform-origin:bottom;
-    transition:0.7s;
+    transition:0.8s;
 }
 
 .chest.open .lid{
@@ -53,13 +78,13 @@ body{
     position:absolute;
     inset:-20px;
     border-radius:30px;
-    background: radial-gradient(circle, rgba(224,170,255,0.8), transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.7), transparent 70%);
     opacity:0;
 }
 
-.chest.open .energy{
+.chest.charging .energy{
     opacity:1;
-    animation:pulse 1.2s infinite alternate;
+    animation:pulse 0.6s infinite alternate;
 }
 
 @keyframes pulse{
@@ -67,20 +92,12 @@ body{
     to{ transform:scale(1.15); }
 }
 
-.star{
-    font-size:42px;
-    margin-top:10px;
+.stars{
+    margin-top:20px;
+    font-size:28px;
+    letter-spacing:8px;
     opacity:0;
-    transform:translateY(30px);
-    transition:0.5s;
-}
-
-.rarity{
-    font-size:24px;
-    color:#ff4dff;
-    letter-spacing:2px;
-    opacity:0;
-    transition:0.5s;
+    transition:0.6s;
 }
 
 .reward{
@@ -91,41 +108,21 @@ body{
 }
 
 .reward img{
-    width:140px;
+    width:150px;
     border-radius:12px;
     margin-top:10px;
-    box-shadow:0 0 20px white;
-}
-
-button{
-    margin-top:15px;
-    padding:12px 26px;
-    border:none;
-    border-radius:12px;
-    font-size:18px;
-    background:#ffd60a;
-    cursor:pointer;
-    display:none;
-}
-
-.particle{
-    position:absolute;
-    width:6px;
-    height:6px;
-    background:white;
-    border-radius:50%;
-    opacity:0.8;
-    animation:float 2s linear infinite;
-}
-
-@keyframes float{
-    from{ transform:translateY(0); opacity:1; }
-    to{ transform:translateY(-120px); opacity:0; }
+    box-shadow:0 0 25px white;
 }
 
 .show{
     opacity:1 !important;
     transform:translateY(0) !important;
+}
+
+.click-info{
+    margin-top:15px;
+    font-size:18px;
+    color:#e0aaff;
 }
 </style>
 </head>
@@ -134,26 +131,32 @@ button{
 
 <div class="container">
 
-    <div class="chest" onclick="openChest(this)">
+    <div class="chest" id="chest">
         <div class="energy"></div>
+        <div class="base"></div>
+        <div class="band"></div>
+        <div class="lock"></div>
         <div class="lid"></div>
     </div>
 
-    <div class="star" id="star">⭐</div>
-    <div class="rarity" id="rarity">RARIDADE ÉPICA</div>
+    <div class="click-info" id="info">Toque 3 vezes para abrir</div>
 
-    <div class="reward" id="reward">
-        <div id="text"></div>
-        <img id="image" src="">
+    <div class="stars" id="stars">
+        ⭐ ⭐ ⭐ ⭐ ⭐
     </div>
 
-    <button id="collect">COLETAR</button>
+    <div class="reward" id="reward">
+        <div id="??????"></div>
+        <img id="image" src="">
+    </div>
 
 </div>
 
 <audio id="sound" src="open.mp3"></audio>
 
 <script>
+let clicks = 0;
+
 const rewards = [
     {
         text:"Uma surpresa especial para você 💜",
@@ -169,45 +172,39 @@ const rewards = [
     }
 ];
 
-function createParticles(){
-    for(let i=0;i<15;i++){
-        const p=document.createElement("div");
-        p.className="particle";
-        p.style.left=(window.innerWidth/2 + (Math.random()*120-60))+"px";
-        p.style.bottom="200px";
-        p.style.animationDelay=Math.random()+"s";
-        document.body.appendChild(p);
-        setTimeout(()=>p.remove(),2000);
-    }
-}
+const chest = document.getElementById("chest");
 
-function openChest(chest){
+chest.onclick = () => {
     if(chest.classList.contains("open")) return;
 
+    clicks++;
+    chest.classList.add("charging");
+
+    document.getElementById("info").innerText =
+        "Energia " + clicks + "/3";
+
+    if(clicks >= 3){
+        openChest();
+    }
+};
+
+function openChest(){
+    chest.classList.remove("charging");
     chest.classList.add("open");
+
     document.getElementById("sound").play();
-    createParticles();
 
     setTimeout(()=>{
-        document.getElementById("star").classList.add("show");
+        document.getElementById("stars").classList.add("show");
     },400);
-
-    setTimeout(()=>{
-        document.getElementById("rarity").classList.add("show");
-    },700);
 
     setTimeout(()=>{
         const reward = rewards[Math.floor(Math.random()*rewards.length)];
         document.getElementById("text").innerText = reward.text;
         document.getElementById("image").src = reward.img;
         document.getElementById("reward").classList.add("show");
-        document.getElementById("collect").style.display="inline-block";
-    },1200);
+    },900);
 }
-
-document.getElementById("collect").onclick=()=>{
-    alert("Recompensa enviada!");
-};
 </script>
 
 </body>
